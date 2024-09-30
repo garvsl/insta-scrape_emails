@@ -1,0 +1,122 @@
+generator client {
+  provider = "prisma-client-py"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+model Script {
+  id      String   @id @default(uuid())
+  title   String
+  body    String
+  created DateTime @default(now())
+  userId  String
+  User    User     @relation(fields: [userId], references: [id])
+}
+
+
+model Influencer {
+  id      String   @id @default(uuid())
+  handle  String   @unique
+  email   String   @unique
+  name    String
+  created DateTime @default(now())
+  checked Boolean  @default(false)
+}
+
+enum CreatedBy {
+  GARV
+  MOH
+  KP
+}
+
+model Username {
+  id      String   @id @default(uuid())
+  handle  String   @unique
+  checked Boolean  @default(false)
+  created DateTime @default(now())
+  CreatedBy CreatedBy @default(GARV)
+}
+
+model Email {
+  id            String   @id @default(uuid())
+  title         String   @db.VarChar(255)
+  createdAt     DateTime @default(now()) @db.Timestamp(6)
+  content       String?
+  needsResponse Boolean  @default(true)
+  you           Boolean  @default(false)
+  aiResponse    String?
+  profileId     String
+  Profile       Profile  @relation(fields: [profileId], references: [id], onDelete: NoAction, onUpdate: NoAction)
+}
+
+model Text {
+  id            String   @id @default(uuid())
+  createdAt     DateTime @default(now()) @db.Timestamp(6)
+  content       String?
+  needsResponse Boolean  @default(true)
+  you           Boolean  @default(false)
+  aiResponse    String?
+  profileId     String
+  Profile       Profile  @relation(fields: [profileId], references: [id], onDelete: NoAction, onUpdate: NoAction)
+}
+
+model Meeting {
+  id         String    @id @default(uuid())
+  createdAt  DateTime  @default(now()) @db.Timestamp(6)
+  agenda     String?
+  date       DateTime?
+  link       String?
+  transcript String?
+  profileId  String
+  Profile    Profile   @relation(fields: [profileId], references: [id], onDelete: NoAction, onUpdate: NoAction)
+}
+
+model Profile {
+  id        String   @id @default(uuid())
+  createdAt DateTime @default(now()) @db.Timestamp(6)
+  name      String?
+  email     String?  @unique
+  phone     String?  @unique
+  handle    String?  @unique
+  notes     String?
+  interests String?
+  quote     String?
+  status    String   @default("initial contact")
+
+  Email   Email[]
+  Text    Text[]
+  Meeting Meeting[]
+  userId  String    
+  User    User      @relation(fields: [userId], references: [id], onDelete: NoAction, onUpdate: NoAction)
+}
+
+model Scraper {
+  id       String  @id @default(uuid())
+  email    String
+  password String
+  cookie   String?
+  userId   String  
+  createdAt     DateTime @default(now()) @db.Timestamp(6)
+  User     User    @relation(fields: [userId], references: [id])
+}
+
+model User {
+  id             String    @id @default(uuid())
+  name           String
+  email          String    @unique
+  hashedPassword String
+  Profile        Profile[]
+  Script         Script[]
+  Scraper        Scraper[]
+}
+
+model Session {
+  id        String   @id @default(cuid())
+  sid       String   @unique
+  data      String
+  expiresAt DateTime
+}
+
